@@ -46,7 +46,6 @@ public class TinyUrlGenerator {
         StringBuilder sb = new StringBuilder();
         while (hashedValue >= 62) {
             int rem = (int) (hashedValue % BASE);
-            LOG.info("====> " + rem + ", char: " + lookup[rem]);
             hashedValue /= BASE;
             sb.append(lookup[rem]);
         }

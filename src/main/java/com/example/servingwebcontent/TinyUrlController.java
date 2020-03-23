@@ -52,18 +52,28 @@ public class TinyUrlController {
 		String originalUrl = tinyUrlRequest.getOriginalUrl();
 		String tinyUrl = TinyUrlGenerator.generate(originalUrl);
 
+		// tinyUrl and originalUrl are already in database
+		String url = tinyUrlService.getOriginalUrl(tinyUrl);
+		if (url.equals(originalUrl)) {
+			LOG.info(tinyUrl + " already exists as: " + url);
+			return new TinyUrlResponse(tinyUrl, originalUrl);
+		}
+
+		if (url.equals("")) {
+			LOG.info("Saving " + tinyUrl + " to database as: " + originalUrl);
+			tinyUrlService.saveUrlMapping(new UrlMapping(tinyUrl, originalUrl));
+			return new TinyUrlResponse(tinyUrl, originalUrl);	
+		}
+
 		String toBeHashed = new String(originalUrl);
-		while (tinyUrlService.tinyUrlExists(tinyUrl)) {
+		do {
 			LOG.info(toBeHashed + " already exists");
 			toBeHashed = toBeHashed + "_UNIQUEPLACEHOLDER";
 			tinyUrl = TinyUrlGenerator.generate(toBeHashed);
-		}
+		} while (tinyUrlService.tinyUrlExists(tinyUrl));
 
 		UrlMapping urlMapping = new UrlMapping(tinyUrl, toBeHashed);	
 		int result = tinyUrlService.saveUrlMapping(urlMapping);
-		LOG.info("===> result: "  + result);
-		LOG.info("Original url: " + originalUrl);
-		LOG.info("Tiny url: " + tinyUrl);
 		TinyUrlResponse response = new TinyUrlResponse(tinyUrl, originalUrl);
 		return response; 
 	}
